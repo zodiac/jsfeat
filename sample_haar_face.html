@@ -28,7 +28,7 @@
         <script type="text/javascript">
 
         window.hairOffset = {
-            'HAIR1.png': 0.5,
+            'HAIR1.png': 0.4,
             'HAIR2.png': 0.5,
             'HAIR3.png': 0.25,
         };
@@ -210,6 +210,11 @@
                             'left': windowLeft + tbWindowWidth / 2 - $("#hatBox").width() / 2,
                             'width': tbWindowWidth,
                         });
+
+                        $("#moustacheBox").css({
+                            'top': windowTop + tbWindowHeight / 2,
+                            'left': windowLeft + tbWindowWidth / 2 - $("#moustacheBox").width() / 2,
+                        });
                     }
 
                     if (window.mode === 'calibration') {
@@ -231,10 +236,12 @@
 
         <div id="trackingBox" style="position: absolute; width: 10px; height: 300px; border: 1px solid pink"></div>
         <img id="hatBox" src="HAIR3.png" width="350" style="position:absolute" />
+        <img id="moustacheBox" src="http://pngimg.com/upload/beard_PNG6268.png" width="350" style="position:absolute;-webkit-filter:invert(100%)" />
 
         <script>
 
         $("#hatBox").hide();
+        $("#moustacheBox").hide();
 
         $(document).keyup(function (e) {
             if (e.which === 67) { /*c*/
@@ -259,6 +266,8 @@
                 } else if ($("#hatBox").attr("src") === 'HAIR2.png') {
                     $("#hatBox").attr("src", 'HAIR3.png');
                 }
+            } else if (e.which === 77) { /*m*/
+                $("#moustacheBox").toggle();
             }
         });
 
