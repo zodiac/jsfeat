@@ -12,10 +12,10 @@
         <link rel="stylesheet" href="css/bootstrap.css">
         <link rel="stylesheet" href="css/jsfeat.css">
     </head>
-    <body>
-            <video id="webcam" width="1280" height="960" style="display:none;"></video>
-            <div style=" width:1280px;height:960px;margin: 10px auto;transform:scaleX(-1)">
-                <canvas id="canvas" width="1280" height="960"></canvas>
+    <body style="background: black">
+            <video id="webcam" width="640" height="480" style="display:none;"></video>
+            <div style=" width:640px;height:480px;margin: 10px auto;transform:scaleX(-1)">
+                <canvas id="canvas" width="640" height="480"></canvas>
                 <div id="no_rtc" class="alert alert-error" style="display:none;"></div>
             </div>
 
@@ -26,6 +26,8 @@
         <script type="text/javascript" src="js/profiler.js"></script>
         <script type="text/javascript" src="js/dat.gui.min.js"></script>
         <script type="text/javascript">
+
+        window.mode = null;
 
         $(window).load(function() {
             "use strict";
@@ -47,7 +49,7 @@
                             attempts++;
                             setTimeout(findVideoSize, 200);
                         } else {
-                            onDimensionsReady(1280, 960);
+                            onDimensionsReady(640, 480);
                         }
                     }
                 };
@@ -124,18 +126,19 @@
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
 
                     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                    ctx.drawImage(video, 0, 0, canvasWidth, canvasHeight);
+                    
+                    if (window.mode !== 'tracking') {
+                        ctx.drawImage(video, 0, 0, canvasWidth, canvasHeight);
+                    }
 
                     work_ctx.drawImage(video, 0, 0, work_canvas.width, work_canvas.height);
                     var imageData = work_ctx.getImageData(0, 0, work_canvas.width, work_canvas.height);
                     
                     jsfeat.imgproc.grayscale(imageData.data, work_canvas.width, work_canvas.height, img_u8);
 
-                    // possible options
                     if(options.equalize_histogram) {
                         jsfeat.imgproc.equalize_histogram(img_u8, img_u8);
                     }
-                    //jsfeat.imgproc.gaussian_blur(img_u8, img_u8, 3);
 
                     jsfeat.imgproc.compute_integral_image(img_u8, ii_sum, ii_sqsum, classifier.tilted ? ii_tilted : null);
 
@@ -163,7 +166,46 @@
                 var r;
                 for(var i = 0; i < n; ++i) {
                     r = rects[i];
-                    ctx.strokeRect((r.x*sc)|0,(r.y*sc)|0,(r.width*sc)|0,(r.height*sc)|0);
+
+                    if (window.mode !== 'tracking') {
+                        ctx.strokeRect((r.x*sc)|0,(r.y*sc)|0,(r.width*sc)|0,(r.height*sc)|0);
+                    }
+
+                    if (window.mode === 'tracking') {
+                        var viewportWidth = window.calibration.right - window.calibration.left;
+                        var viewportHeight = window.calibration.bottom - window.calibration.top;
+
+                        var canvasLeft = canvasWidth - (r.x + r.width)*sc;
+                        var viewportLeft = canvasLeft - window.calibration.left;
+                        var windowLeft = (document.documentElement.clientWidth) * (viewportLeft / viewportWidth);
+
+                        var canvasTop = r.y*sc;
+                        var viewportTop = canvasTop - window.calibration.top;
+                        var windowTop = (document.documentElement.clientHeight) * (viewportTop / viewportHeight);
+
+                        var canvasRight = canvasWidth - r.x*sc;
+                        var canvasBottom = (r.y + r.height)*sc;
+
+                        var tbCanvasWidth = canvasRight - canvasLeft;
+                        var tbCanvasHeight = canvasBottom - canvasTop;
+
+                        var tbWindowWidth = document.documentElement.clientWidth * tbCanvasWidth / canvasWidth;
+                        var tbWindowHeight = document.documentElement.clientHeight * tbCanvasHeight / canvasHeight;
+
+                        $("#trackingBox").css({
+                            'left': windowLeft,
+                            'top': windowTop,
+                            'width': tbWindowWidth,
+                            'height': tbWindowHeight,
+                        });
+                    }
+
+                    if (window.mode === 'calibration') {
+                        window.calibration.left = Math.min(window.calibration.left, canvasWidth - (r.x + r.width)*sc);
+                        window.calibration.top = Math.min(window.calibration.top, r.y*sc);
+                        window.calibration.right = Math.max(window.calibration.right, canvasWidth - r.x*sc);
+                        window.calibration.bottom = Math.max(window.calibration.bottom, (r.y + r.height)*sc);
+                    }
                 }
             }
 
@@ -172,6 +214,29 @@
                 video.src=null;
             });
         });
+
         </script>
+
+        <div id="startCalibration">start calibration</div>
+        <div id="endCalibration">end calibration</div>
+        <div id="trackingBox" style="position: absolute; width: 10px; height: 300px; border: 1px solid pink" />
+
+        <script>
+        $("#startCalibration").click(function () {
+            window.calibration = {
+                left: 10000,
+                right: 0,
+                top: 1000,
+                bottom: 0,
+            };
+            window.mode = 'calibration';
+        });
+
+        $("#endCalibration").click(function () {
+            window.mode = 'tracking';
+            console.log(window.calibration);
+        });
+        </script>
+
     </body>
 </html>
