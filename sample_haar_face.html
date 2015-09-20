@@ -27,6 +27,12 @@
         <script type="text/javascript" src="js/dat.gui.min.js"></script>
         <script type="text/javascript">
 
+        window.hairOffset = {
+            'HAIR1.png': 0.5,
+            'HAIR2.png': 0.5,
+            'HAIR3.png': 0.25,
+        };
+
         window.mode = null;
 
         $(window).load(function() {
@@ -200,7 +206,7 @@
                         });
 
                         $("#hatBox").css({
-                            'top': windowTop - $("#hatBox").height() * 0.25,
+                            'top': windowTop - $("#hatBox").height() * hairOffset[$("#hatBox").attr("src")],
                             'left': windowLeft + tbWindowWidth / 2 - $("#hatBox").width() / 2,
                             'width': tbWindowWidth,
                         });
@@ -223,10 +229,6 @@
 
         </script>
 
-        <div id="startCalibration">start calibration</div>
-        <div id="endCalibration">end calibration</div>
-
-
         <div id="trackingBox" style="position: absolute; width: 10px; height: 300px; border: 1px solid pink"></div>
         <img id="hatBox" src="HAIR3.png" width="350" style="position:absolute" />
 
@@ -234,21 +236,32 @@
 
         $("#hatBox").hide();
 
-        $("#startCalibration").click(function () {
-            window.calibration = {
-                left: 10000,
-                right: 0,
-                top: 1000,
-                bottom: 0,
-            };
-            window.mode = 'calibration';
+        $(document).keyup(function (e) {
+            if (e.which === 67) { /*c*/
+                window.calibration = {
+                    left: 10000,
+                    right: 0,
+                    top: 1000,
+                    bottom: 0,
+                };
+                window.mode = 'calibration';
+            } else if (e.which === 69) { /*e*/
+                window.mode = 'tracking';
+                $('#hatBox').show();
+                console.log(window.calibration);
+            } else if (e.which === 66) { /*b*/
+                $("#trackingBox").toggle();
+            } else if (e.which === 83) { /*s*/
+                if ($("#hatBox").attr("src") === 'HAIR3.png') {
+                    $("#hatBox").attr("src", 'HAIR1.png');
+                } else if ($("#hatBox").attr("src") === 'HAIR1.png') {
+                    $("#hatBox").attr("src", 'HAIR2.png');
+                } else if ($("#hatBox").attr("src") === 'HAIR2.png') {
+                    $("#hatBox").attr("src", 'HAIR3.png');
+                }
+            }
         });
 
-        $("#endCalibration").click(function () {
-            window.mode = 'tracking';
-            $('#hatBox').show();
-            console.log(window.calibration);
-        });
         </script>
 
     </body>
