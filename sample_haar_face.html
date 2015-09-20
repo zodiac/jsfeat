@@ -11,24 +11,12 @@
         <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold|Inconsolata|PT+Sans:400,700">
         <link rel="stylesheet" href="css/bootstrap.css">
         <link rel="stylesheet" href="css/jsfeat.css">
-
-        <script type="text/javascript">
-          var _gaq = _gaq || [];
-          _gaq.push(['_setAccount', 'UA-36419199-1']);
-          _gaq.push(['_trackPageview']);
-          (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })();
-        </script>
     </head>
     <body>
             <video id="webcam" width="640" height="480" style="display:none;"></video>
-            <div style=" width:640px;height:480px;margin: 10px auto;">
+            <div style=" width:640px;height:480px;margin: 10px auto;transform:scaleX(-1)">
                 <canvas id="canvas" width="640" height="480"></canvas>
                 <div id="no_rtc" class="alert alert-error" style="display:none;"></div>
-                <div id="log" class="alert alert-info"></div>
             </div>
 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
@@ -81,20 +69,16 @@
                         }, 500);
                 }, function (error) {
                     $('#canvas').hide();
-                    $('#log').hide();
                     $('#no_rtc').html('<h4>WebRTC not available.</h4>');
                     $('#no_rtc').show();
                 });
             } catch (error) {
                 $('#canvas').hide();
-                $('#log').hide();
                 $('#no_rtc').html('<h4>Something goes wrong...</h4>');
                 $('#no_rtc').show();
             }
 
-            var stat = new profiler();
-
-            var gui,options,ctx,canvasWidth,canvasHeight;
+            var options,ctx,canvasWidth,canvasHeight;
             var img_u8,work_canvas,work_ctx,ii_sum,ii_sqsum,ii_tilted,edg,ii_canny;
             var classifier = jsfeat.haar.frontalface;
 
@@ -132,28 +116,17 @@
                 ii_canny = new Int32Array((w+1)*(h+1));
 
                 options = new demo_opt();
-                gui = new dat.GUI();
-
-                gui.add(options, 'min_scale', 1, 4).step(0.1);
-                gui.add(options, 'scale_factor', 1.1, 2).step(0.025);
-                gui.add(options, 'equalize_histogram');
-                gui.add(options, 'use_canny');
-                gui.add(options, 'edges_density', 0.01, 1.).step(0.005);
-
-                stat.add("haar detector");
             }
 
             function tick() {
                 compatibility.requestAnimationFrame(tick);
-                stat.new_frame();
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
 
+                    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
                     ctx.drawImage(video, 0, 0, canvasWidth, canvasHeight);
 
                     work_ctx.drawImage(video, 0, 0, work_canvas.width, work_canvas.height);
                     var imageData = work_ctx.getImageData(0, 0, work_canvas.width, work_canvas.height);
-
-                    stat.start("haar detector");
                     
                     jsfeat.imgproc.grayscale(imageData.data, work_canvas.width, work_canvas.height, img_u8);
 
@@ -174,12 +147,8 @@
                     var rects = jsfeat.haar.detect_multi_scale(ii_sum, ii_sqsum, ii_tilted, options.use_canny? ii_canny : null, img_u8.cols, img_u8.rows, classifier, options.scale_factor, options.min_scale);
                     rects = jsfeat.haar.group_rectangles(rects, 1);
 
-                    stat.stop("haar detector");
-
                     // draw only most confident one
                     draw_faces(ctx, rects, canvasWidth/img_u8.cols, 1);
-
-                    $('#log').html(stat.log());
                 }
             }
 
