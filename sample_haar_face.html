@@ -198,6 +198,11 @@
                             'width': tbWindowWidth,
                             'height': tbWindowHeight,
                         });
+
+                        $("#hatBox").css({
+                            'top': windowTop - $("#hatBox").height(),
+                            'left': windowLeft + tbWindowWidth / 2 - $("#hatBox").width() / 2,
+                        });
                     }
 
                     if (window.mode === 'calibration') {
@@ -219,9 +224,15 @@
 
         <div id="startCalibration">start calibration</div>
         <div id="endCalibration">end calibration</div>
-        <div id="trackingBox" style="position: absolute; width: 10px; height: 300px; border: 1px solid pink" />
+
+
+        <div id="trackingBox" style="position: absolute; width: 10px; height: 300px; border: 1px solid pink"></div>
+        <img id="hatBox" src="http://vignette3.wikia.nocookie.net/harrypotter/images/c/c9/Sorting_Hat..png/revision/latest?cb=20150114131321" width="150" style="position:absolute" />
 
         <script>
+
+        $("#hatBox").hide();
+
         $("#startCalibration").click(function () {
             window.calibration = {
                 left: 10000,
@@ -234,6 +245,7 @@
 
         $("#endCalibration").click(function () {
             window.mode = 'tracking';
+            $('#hatBox').show();
             console.log(window.calibration);
         });
         </script>
